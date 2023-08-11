@@ -38,9 +38,9 @@ func getAlbumArtistByID(c *gin.Context) {
     // an album whose ID value matches the parameter.
     for _, a := range albums {
         if a.ID == id {
-            c.IndentedJSON(http.StatusOK, a.Artist)
+            c.IndentedJSON(http.StatusOK, gin.H{"artist": a.Artist})
             return
         }
     }
-    c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
+    c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Artist not found"})
 }
