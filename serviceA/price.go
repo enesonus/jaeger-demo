@@ -1,9 +1,17 @@
 package main
 
 import (
+	"context"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"go.opentelemetry.io/otel"
+	stdouttrace "go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"go.opentelemetry.io/otel/propagation"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
 // album represents data about a record album.
@@ -23,10 +31,43 @@ var albums = []album{
 }
 
 func main() {
-    router := gin.Default()
+    tp, err := initTracer()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err := tp.Shutdown(context.Background()); err != nil {
+			log.Printf("Error shutting down tracer provider: %v", err)
+		}
+	}()
+
+    router := gin.New()
+	router.Use(otelgin.Middleware("price-server"))
     router.GET("/album_price/:id", getAlbumPriceByID)
 
     router.Run("localhost:8081")
+}
+
+func initTracer() (*sdktrace.TracerProvider, error) {
+	f, err := os.Create("../tracesPrice.txt")
+	
+	exporter, err := stdouttrace.New(
+		stdouttrace.WithWriter(f),
+		// Use human-readable output.
+		stdouttrace.WithPrettyPrint(),
+		// Do not print timestamps for the demo.
+		stdouttrace.WithoutTimestamps(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithSampler(sdktrace.AlwaysSample()),
+		sdktrace.WithBatcher(exporter),
+	)
+	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	return tp, nil
 }
 
 // getAlbumByID locates the album whose ID value matches the id
