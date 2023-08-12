@@ -2,16 +2,13 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
-	"os"
+	"restful-api/lib/tracing"
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
-	"go.opentelemetry.io/otel"
-	stdouttrace "go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/propagation"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // album represents data about a record album.
@@ -30,49 +27,35 @@ var albums = []album{
     {ID: "3", Title: "Sarah Vaughan and Clifford Brown", Artist: "Sarah Vaughan", Price: 39.99},
 }
 
+var tracer trace.Tracer
+
+const thisServiceName = "price-service"
+
 func main() {
-    tp, err := initTracer()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer func() {
-		if err := tp.Shutdown(context.Background()); err != nil {
-			log.Printf("Error shutting down tracer provider: %v", err)
-		}
-	}()
+	ctx := context.Background()
+    tracer = tracing.Init(ctx, thisServiceName)
+
 
     router := gin.New()
-	router.Use(otelgin.Middleware("price-server"))
+	router.Use(otelgin.Middleware(thisServiceName))
     router.GET("/album_price/:id", getAlbumPriceByID)
 
     router.Run("localhost:8081")
 }
 
-func initTracer() (*sdktrace.TracerProvider, error) {
-	f, err := os.Create("../tracesPrice.txt")
-	
-	exporter, err := stdouttrace.New(
-		stdouttrace.WithWriter(f),
-		// Use human-readable output.
-		stdouttrace.WithPrettyPrint(),
-		// Do not print timestamps for the demo.
-		stdouttrace.WithoutTimestamps(),
-	)
-	if err != nil {
-		return nil, err
-	}
-	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithSampler(sdktrace.AlwaysSample()),
-		sdktrace.WithBatcher(exporter),
-	)
-	otel.SetTracerProvider(tp)
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
-	return tp, nil
-}
-
 // getAlbumByID locates the album whose ID value matches the id
 // parameter sent by the client, then returns that album as a response.
 func getAlbumPriceByID(c *gin.Context) {
+	p := propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{}, propagation.Baggage{})
+		
+	ctx := p.Extract(c.Request.Context(), propagation.HeaderCarrier(c.Request.Header))
+
+	_, span := tracer.Start(ctx, thisServiceName)
+	defer span.End()
+
+	c.Request.Header.Set("Content-Type", "application/json")
+
     id := c.Param("id")
 
     // Loop over the list of albums, looking for
