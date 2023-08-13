@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"restful-api/lib/tracing"
+
+	"github.com/enesonus/jaeger-demo/lib/tracing"
 
 	"net/http"
 

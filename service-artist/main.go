@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"restful-api/lib/tracing"
+
+	"github.com/enesonus/jaeger-demo/lib/tracing"
 
 	"go.opentelemetry.io/otel/propagation"
 

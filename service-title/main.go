@@ -3,7 +3,8 @@ package main
 import (
 	"context"
 	"net/http"
-	"restful-api/lib/tracing"
+
+	"github.com/enesonus/jaeger-demo/lib/tracing"
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
