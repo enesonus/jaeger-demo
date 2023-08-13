@@ -1,4 +1,4 @@
-module restful-api
+module github.com/enesonus/jaeger-demo
 
 go 1.20
 
