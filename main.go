@@ -79,7 +79,7 @@ func main() {
 // parameter sent by the client, then returns that album as a response.
 func getAlbumByID(w http.ResponseWriter, r *http.Request) {
 
-	ctx, span := tracer.Start(r.Context(), "/ping")
+	ctx, span := tracer.Start(r.Context(), "thisServiceName")
 	defer span.End()
 
 	id := r.URL.Query().Get("id")
