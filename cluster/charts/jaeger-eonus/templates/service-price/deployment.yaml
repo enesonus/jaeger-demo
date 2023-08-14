@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-price
+  labels:
+    service: price
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: price
+  template:
+    metadata:
+      labels:
+        service: price
+    spec:
+      containers:
+        - name: main
+          image: {{ .Values.price.image.repository }}:{{ .Values.price.image.tag }}
+          ports:
+          - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://jaeger:4317
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: "true"

@@ -1,0 +1,22 @@
+# Values for the jaeger-demo chart.
+
+
+ingress:
+  domain: enesonus-127-0-0-1.nip.io
+
+public:
+  image:
+    repository: ghcr.io/enesonus/jaeger-demo-public
+    tag: v0.1.0
+artist:
+  image:
+    repository: ghcr.io/enesonus/jaeger-demo-artist
+    tag: v0.1.0
+price:
+  image:
+    repository: ghcr.io/enesonus/jaeger-demo-price
+    tag: v0.1.0
+title:
+  image:
+    repository: ghcr.io/enesonus/jaeger-demo-title
+    tag: v0.1.0

@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-artist
+  labels:
+    service: artist
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: artist
+  template:
+    metadata:
+      labels:
+        service: artist
+    spec:
+      containers:
+        - name: main
+          image: {{ .Values.artist.image.repository }}:{{ .Values.artist.image.tag }}
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://jaeger:4317
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: "true"
