@@ -32,24 +32,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Prepare metadata for Helm
-        if: matrix.name == 'public'
-        id: meta_chart
-        uses: docker/metadata-action@v3
-        with:
-          images: ghcr.io/enesonus/jaeger-demo-chart
-          tags: |
-            type=semver,pattern={{version}}
-      - name: Build and push the chart
-        if: matrix.name == 'public'
-        env:
-          USERNAME: ${{ github.repository_owner }}
-          PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="${GITHUB_REF#refs/*/}"
-          helm registry login ghcr.io -u "${USERNAME}" -p "${PASSWORD}"
-          helm package --version "${TAG:1}" ./cluster/charts/jaeger-demo
-          helm push "jaeger-demo-${TAG:1}.tgz" oci://ghcr.io/enesonus/jaeger-demo
       - name: Prepare metadata
         id: meta
         uses: docker/metadata-action@v3
@@ -71,3 +53,22 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          push: true
+      - name: Prepare metadata for Helm
+        if: matrix.name == 'public'
+        id: meta_chart
+        uses: docker/metadata-action@v3
+        with:
+          images: ghcr.io/enesonus/jaeger-demo-chart
+          tags: |
+            type=semver,pattern={{version}}
+      - name: Build and push the chart
+        if: matrix.name == 'public'
+        env:
+          USERNAME: ${{ github.repository_owner }}
+          PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF#refs/*/}"
+          helm registry login ghcr.io -u "${USERNAME}" -p "${PASSWORD}"
+          helm package --version "${TAG:1}" ./cluster/charts/jaeger-demo
+          helm push "jaeger-demo-${TAG:1}.tgz" oci://ghcr.io/enesonus/jaeger-demo
