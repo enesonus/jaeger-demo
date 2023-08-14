@@ -2,8 +2,8 @@ name: ci
 
 on:
   push:
-    branches:
-      - "main"
+    tags:
+      - *
   workflow_dispatch: {}
 
 jobs:
@@ -55,13 +55,17 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-      - name: Build and push the chart
-        uses: appany/helm-oci-chart-releaser@v0.3.0
+      - name: Prepare metadata for Helm
+        if: startsWith(github.event.ref, 'refs/tags/v')
+        id: meta_chart
+        uses: docker/metadata-action@v3
         with:
-          name: jaeger-demo-chart
-          registry: ghcr.io
-          repository: enesonus/jaeger-demo
-          tag: ${{ steps.meta.outputs.tags }}
-          path: cluster/charts/jaeger-eonus
-          registry_username: ${{ github.repository_owner }}
-          registry_password: ${{ secrets.GITHUB_TOKEN }}
+          images: ghcr.io/enesonus/jaeger-demo-chart
+          tags: |
+            type=semver,pattern={{version}}
+      - name: Build and push the chart
+        if: startsWith(github.event.ref, 'refs/tags/v')
+        run: |
+          helm registry login -u {{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
+          helm package --version {{ steps.meta_chart.outputs.tags }} ./cluster/charts/jaeger-demo
+          helm push jaeger-demo-{{ steps.meta_chart.outputs.tags }}.tgz ghcr.io/enesonus/jaeger-demo
