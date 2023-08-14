@@ -11,7 +11,7 @@ COPY cmd/service-title cmd/service-title
 COPY pkg/ pkg
 COPY internal/ internal
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o /bin/service-title ./cmd/service-title
+RUN go build -o /bin/service-title ./cmd/service-title
 
 FROM scratch
 USER 1000

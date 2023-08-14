@@ -11,7 +11,7 @@ COPY cmd/public cmd/public
 COPY pkg/ pkg
 COPY internal/ internal
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o /bin/public ./cmd/public
+RUN go build -o /bin/public ./cmd/public
 
 FROM scratch
 USER 1000
