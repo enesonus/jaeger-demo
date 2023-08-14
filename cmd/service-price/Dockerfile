@@ -11,7 +11,7 @@ COPY cmd/service-price cmd/service-price
 COPY pkg/ pkg
 COPY internal/ internal
 
-RUN go build -o /bin/service-price ./cmd/service-price
+RUN CGO_ENABLED=0 go build -o /bin/service-price ./cmd/service-price
 
 FROM scratch
 USER 1000

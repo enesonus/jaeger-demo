@@ -11,9 +11,9 @@ COPY cmd/public cmd/public
 COPY pkg/ pkg
 COPY internal/ internal
 
-RUN go build -o /bin/public ./cmd/public
+RUN CGO_ENABLED=0 go build -o /bin/public ./cmd/public
 
-FROM scratch
+FROM alpine
 USER 1000
 
 COPY --from=build /bin/public /app/public

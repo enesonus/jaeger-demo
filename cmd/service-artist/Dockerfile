@@ -11,7 +11,7 @@ COPY cmd/service-artist cmd/service-artist
 COPY pkg/ pkg
 COPY internal/ internal
 
-RUN go build -o /bin/service-artist ./cmd/service-artist
+RUN CGO_ENABLED=0 go build -o /bin/service-artist ./cmd/service-artist
 
 FROM scratch
 USER 1000
