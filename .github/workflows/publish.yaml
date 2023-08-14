@@ -65,7 +65,9 @@ jobs:
         if: matrix.name == 'public'
         env:
           USERNAME: ${{ github.repository_owner }}
+          PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.meta_chart.outputs.tags }}
         run: |
-          helm registry login ghcr.io -u "${USERNAME}" -p ${{ secrets.GITHUB_TOKEN }}
-          helm package --version {{ steps.meta_chart.outputs.tags }} ./cluster/charts/jaeger-demo
-          helm push jaeger-demo-{{ steps.meta_chart.outputs.tags }}.tgz ghcr.io/enesonus/jaeger-demo
+          helm registry login ghcr.io -u "${USERNAME}" -p "${PASSWORD}"
+          helm package --version "${VERSION}" ./cluster/charts/jaeger-demo
+          helm push "jaeger-demo-${VERSION}.tgz" ghcr.io/enesonus/jaeger-demo
