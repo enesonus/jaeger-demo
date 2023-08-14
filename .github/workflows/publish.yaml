@@ -63,7 +63,9 @@ jobs:
             type=semver,pattern={{version}}
       - name: Build and push the chart
         if: matrix.name == 'public'
+        env:
+          USERNAME: ${{ github.repository_owner }}
         run: |
-          helm registry login -u {{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
+          helm registry login ghcr.io -u "${USERNAME}" -p ${{ secrets.GITHUB_TOKEN }}
           helm package --version {{ steps.meta_chart.outputs.tags }} ./cluster/charts/jaeger-demo
           helm push jaeger-demo-{{ steps.meta_chart.outputs.tags }}.tgz ghcr.io/enesonus/jaeger-demo
