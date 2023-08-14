@@ -62,7 +62,7 @@ helm -n default install --wait jaeger jaegertracing/jaeger \
 ### Deploy Our Application
 
 ```bash
-helm -n default install jaeger-demo ./cluster/charts/jaeger-eonus \
+helm -n default install jaeger-demo ./cluster/charts/jaeger-demo \
   --set ingress.domain=enesonus-127-0-0-1.nip.io
 ```
 
