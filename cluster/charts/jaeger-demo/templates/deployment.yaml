@@ -29,6 +29,6 @@ spec:
             - name: SERVICE_TITLE_URL
               value: http://service-title:8080
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: http://jaeger:4317
+              value: http://jaeger-collector:4317
             - name: OTEL_EXPORTER_OTLP_INSECURE
               value: "true"
