@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch: {}
 
 jobs:
   docker:
@@ -56,7 +55,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       - name: Prepare metadata for Helm
-        if: startsWith(github.event.ref, 'refs/tags/v')
+        if: matrix.name == 'public'
         id: meta_chart
         uses: docker/metadata-action@v3
         with:
@@ -64,7 +63,7 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
       - name: Build and push the chart
-        if: startsWith(github.event.ref, 'refs/tags/v')
+        if: matrix.name == 'public'
         run: |
           helm registry login -u {{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
           helm package --version {{ steps.meta_chart.outputs.tags }} ./cluster/charts/jaeger-demo
