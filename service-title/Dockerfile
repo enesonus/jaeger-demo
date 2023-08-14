@@ -1,5 +1,5 @@
-ARG port=8080
-ARG app=service-main
+ARG port=8082
+ARG app=service-title
 
 FROM golang:1.19 as builder
 ARG app
@@ -10,7 +10,7 @@ COPY go.sum .
 
 RUN go mod download
 
-COPY main.go ${app}/
+COPY ${app}/ ${app}
 COPY lib/ lib
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o /out/${app} ./${app}
@@ -22,4 +22,4 @@ ARG port
 COPY --from=builder /out/${app} /app/
 
 EXPOSE ${port}
-ENTRYPOINT ["/app/service-main"]
+ENTRYPOINT ["/app/service-title"]

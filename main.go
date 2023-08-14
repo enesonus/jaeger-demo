@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/enesonus/jaeger-demo/internal/tracing"
 	"io"
 	"log"
-
-	"github.com/enesonus/jaeger-demo/lib/tracing"
+	"os"
 
 	"net/http"
 
@@ -26,7 +26,6 @@ type album struct {
 	Artist string  `json:"artist"`
 	Price  float64 `json:"price"`
 }
-
 
 // func NewTracerProvider(ctx context.Context) *sdktrace.TracerProvider {
 
@@ -68,12 +67,12 @@ func main() {
 
 	ctx := context.Background()
 
-	tracer = tracing.Init(ctx, thisServiceName) 
+	tracer = tracing.Init(ctx, thisServiceName)
 
 	http.HandleFunc("/album", getAlbumByID)
 	log.Printf("Listening on localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
-	
+
 }
 
 // getAlbumByID locates the album whose ID value matches the id
@@ -133,7 +132,10 @@ func getPriceById(ctx context.Context, id string) float64 {
 		Price float64 `json:"price"`
 	}
 
-	if err := fetchJSON("http://localhost:8081/album_price/"+id, &priceStruct, ctx); err != nil {
+	servicePort, _ := os.LookupEnv("SERVICE_TITLE_PORT")
+	url := fmt.Sprintf("http://service-price:%s/album_price/%s", servicePort, id)
+
+	if err := fetchJSON(url, &priceStruct, ctx); err != nil {
 		return 0
 	}
 	return priceStruct.Price
@@ -149,7 +151,10 @@ func getTitleById(ctx context.Context, id string) string {
 		Title string `json:"title"`
 	}
 
-	if err := fetchJSON("http://localhost:8082/album_title/"+id, &titleStruct, ctx); err != nil {
+	servicePort, _ := os.LookupEnv("SERVICE_TITLE_PORT")
+	url := fmt.Sprintf("http://service-title:%s/album_title/%s", servicePort, id)
+
+	if err := fetchJSON(url, &titleStruct, ctx); err != nil {
 		return ""
 	}
 	return titleStruct.Title
@@ -162,10 +167,12 @@ func getArtistById(ctx context.Context, id string) string {
 
 	defer span.End()
 
+	servicePort, _ := os.LookupEnv("SERVICE_ARTIST_PORT")
+
 	var artistStruct struct {
 		Artist string `json:"artist"`
 	}
-	url := "http://localhost:8083/album_artist?id="+id	
+	url := fmt.Sprintf("http://service-artist:%v/album_artist?id=%v", servicePort, id)
 
 	if err := fetchJSON(url, &artistStruct, ctx); err != nil {
 		return err.Error()
@@ -174,11 +181,9 @@ func getArtistById(ctx context.Context, id string) string {
 }
 
 func fetchJSON(url string, target interface{}, ctx context.Context) error {
-	
 
 	ctx, span := tracer.Start(ctx, "fetchJSON")
 	defer span.End()
-
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 

@@ -24,16 +24,12 @@ func Init(ctx context.Context, service string) trace.Tracer {
 
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exporter),
-		sdktrace.WithResource(newResource(service)),
+		sdktrace.WithResource(resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceName(service),
+			semconv.ServiceVersion("0.0.1"),
+		)),
 	)
 
 	return tp.Tracer(service)
-}
-
-func newResource(service string) *resource.Resource {
-	return resource.NewWithAttributes(
-		semconv.SchemaURL,
-		semconv.ServiceName(service),
-		semconv.ServiceVersion("0.0.1"),
-	)
 }
