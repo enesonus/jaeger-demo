@@ -55,6 +55,8 @@ helm -n default install --wait jaeger jaegertracing/jaeger \
   --set storage.type=elasticsearch \
   --set elasticsearch.replicas=1 \
   --set elasticsearch.minimumMasterNodes=1 \
+  --set collector.service.otlp.grpc.name=otlp \
+  --set collector.service.otlp.http.name=otlp-http \
   --set query.ingress.enabled=true \
   --set 'query.ingress.hosts[0]=jaeger-127-0-0-1.nip.io'
 ```
