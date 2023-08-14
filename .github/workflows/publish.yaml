@@ -53,6 +53,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          push: true
       - name: Prepare metadata for Helm
         if: matrix.name == 'public'
         id: meta_chart
@@ -65,7 +66,9 @@ jobs:
         if: matrix.name == 'public'
         env:
           USERNAME: ${{ github.repository_owner }}
+          PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          helm registry login ghcr.io -u "${USERNAME}" -p ${{ secrets.GITHUB_TOKEN }}
-          helm package --version {{ steps.meta_chart.outputs.tags }} ./cluster/charts/jaeger-demo
-          helm push jaeger-demo-{{ steps.meta_chart.outputs.tags }}.tgz ghcr.io/enesonus/jaeger-demo
+          TAG="${GITHUB_REF#refs/*/}"
+          helm registry login ghcr.io -u "${USERNAME}" -p "${PASSWORD}"
+          helm package --version "${TAG:1}" ./cluster/charts/jaeger-demo
+          helm push "jaeger-demo-${TAG:1}.tgz" oci://ghcr.io/enesonus/jaeger-demo
