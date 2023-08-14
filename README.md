@@ -64,10 +64,9 @@ helm -n default install --wait jaeger jaegertracing/jaeger \
 ### Deploy Our Application
 
 ```bash
-helm -n default install jaeger-demo ./cluster/charts/jaeger-demo \
+helm install --wait jaeger-demo oci://ghcr.io/enesonus/jaeger-demo/jaeger-demo --version 0.2.2 \
   --set ingress.domain=enesonus-127-0-0-1.nip.io
 ```
-
 
 ### Access The Application
 
@@ -79,6 +78,4 @@ curl '127.0.0.1:8080/album?id=1'
 
 ### Query Traces Using Jaeger UI
 
-```bash
-kubectl port-forward -n default svc/jaeger-query 16686:16686
-```
+Go to http://jaeger-127-0-0-1.nip.io and query traces!
