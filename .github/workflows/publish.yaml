@@ -49,7 +49,7 @@ jobs:
           TAG="${GITHUB_REF#refs/*/}"
           helm registry login ghcr.io -u "${USERNAME}" -p "${PASSWORD}"
           helm package --version "${TAG:1}" ./cluster/charts/jaeger-demo
-          helm push "jaeger-demo-${TAG:1}.tgz" ghcr.io/enesonus/jaeger-demo
+          helm push "jaeger-demo-${TAG:1}.tgz" oci://ghcr.io/enesonus/jaeger-demo
       - name: Prepare metadata
         id: meta
         uses: docker/metadata-action@v3
