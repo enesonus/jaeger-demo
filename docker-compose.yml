@@ -1,58 +1,60 @@
 version: "3"
 
 services:
-  service-main:
+  public:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: cmd/public/Dockerfile
     ports:
       - "8080:8080"
     networks:
       - elastic-jaeger
     environment:
-      - SERVICE_PRICE_PORT=8081
-      - SERVICE_TITLE_PORT=8082
-      - SERVICE_ARTIST_PORT=8083
+      - PORT=8080
+      - SERVICE_ARTIST_URL=http://service-artist:9091
+      - SERVICE_PRICE_URL=http://service-price:9090
+      - SERVICE_TITLE_URL=http://service-title:9091
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - OTEL_EXPORTER_OTLP_INSECURE=true
+
+  service-artist:
+    build:
+      context: .
+      dockerfile: cmd/service-artist/Dockerfile
+    ports:
+      - "9092:9092"
+    networks:
+      - elastic-jaeger
+    environment:
+      - PORT=9091
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
       - OTEL_EXPORTER_OTLP_INSECURE=true
 
   service-price:
     build:
       context: .
-      dockerfile: service-price/Dockerfile
+      dockerfile: cmd/service-price/Dockerfile
     ports:
-      - "8081:8081"
+      - "9090:9090"
     networks:
       - elastic-jaeger
     environment:
+      - PORT=9090
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
       - OTEL_EXPORTER_OTLP_INSECURE=true 
 
   service-title:
     build:
       context: .
-      dockerfile: service-title/Dockerfile
+      dockerfile: cmd/service-title/Dockerfile
     ports:
-      - "8082:8082"
+      - "9091:9091"
     networks:
       - elastic-jaeger
     environment:
+      - PORT=9091
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
       - OTEL_EXPORTER_OTLP_INSECURE=true
-      
-  service-artist:
-    build:
-      context: .
-      dockerfile: service-artist/Dockerfile
-    ports:
-      - "8083:8083"
-    networks:
-      - elastic-jaeger
-    environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
-      - OTEL_EXPORTER_OTLP_INSECURE=true 
-
-
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.12
