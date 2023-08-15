@@ -51,7 +51,7 @@ func main() {
 
 	server := http.NewServeMux()
 	server.HandleFunc("/album", func(w http.ResponseWriter, r *http.Request) {
-		ctx, span := tracer.Start(r.Context(), "thisServiceName")
+		ctx, span := tracer.Start(r.Context(), ServiceName)
 		defer span.End()
 		w.Header().Set("Content-Type", "application/json")
 		encoder := json.NewEncoder(w)
