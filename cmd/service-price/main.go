@@ -30,7 +30,7 @@ func main() {
 	server.HandleFunc("/album_price", func(w http.ResponseWriter, r *http.Request) {
 		p := propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{})
 		ctx := p.Extract(r.Context(), propagation.HeaderCarrier(r.Header))
-		_, span := tracer.Start(ctx, fmt.Sprintf(SpanNameFmt, "album_artist"))
+		_, span := tracer.Start(ctx, fmt.Sprintf(SpanNameFmt, "album_price"))
 		defer span.End()
 
 		w.Header().Set("Content-Type", "application/json")
