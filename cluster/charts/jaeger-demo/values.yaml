@@ -7,16 +7,16 @@ ingress:
 public:
   image:
     repository: ghcr.io/enesonus/jaeger-demo-public
-    tag: 0.2.1
+    tag: latest
 artist:
   image:
     repository: ghcr.io/enesonus/jaeger-demo-service-artist
-    tag: 0.2.1
+    tag: latest
 price:
   image:
     repository: ghcr.io/enesonus/jaeger-demo-service-price
-    tag: 0.2.1
+    tag: latest
 title:
   image:
     repository: ghcr.io/enesonus/jaeger-demo-service-title
-    tag: 0.2.1
+    tag: latest
