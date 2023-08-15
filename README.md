@@ -85,7 +85,7 @@ helm -n default install --wait jaeger jaegertracing/jaeger \
 
 By default domain name is `enesonus-127-0-0-1.nip.io`. You can change it by setting `ingress.domain` parameter.
 ```bash
-helm install --wait jaeger-demo oci://ghcr.io/enesonus/jaeger-demo/jaeger-demo --version 0.2.2 \
+helm install --wait jaeger-demo oci://ghcr.io/enesonus/jaeger-demo/jaeger-demo --version 0.2.6 \
   --set ingress.domain=enesonus-127-0-0-1.nip.io
 ```
 After this command we will have 4 services running in our cluster. These are:
