@@ -1,3 +1,5 @@
+![img_1.png](pics/img_1.png)
+
 # Jaeger Demo
 Jaeger is a distributed tracing system. It is used for monitoring and troubleshooting microservices-based distributed systems. It is compatible with OpenTracing and OpenTelemetry.
 
@@ -115,6 +117,3 @@ This should return an album (id=1) with title, price and artist name. An example
 
 We can query traces using Jaeger UI.
 Go to http://jaeger-127-0-0-1.nip.io and query traces!
-Here is a sample trace:
-
-![img_1.png](pics/img_1.png)
