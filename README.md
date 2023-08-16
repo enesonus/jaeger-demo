@@ -80,7 +80,13 @@ helm -n default install --wait jaeger jaegertracing/jaeger \
   --set query.ingress.enabled=true \
   --set 'query.ingress.hosts[0]=jaeger-127-0-0-1.nip.io'
 ```
+This helm installation creates pods that enable us to do tracing. Pods are:
+* Jaeger Agent: Collects traces from the application and sends them to the collector.
+* Jaeger Collector: Receives traces from the agent and stores them in the storage backend (Elasticsearch for this application).
+* Jaeger Query: Provides a UI to query traces.
+* Elasticsearch: Storage backend to store traces.
 
+This helm installation also enables OTLP over gRPC and OTLP-HTTP for the collector service. We will use OTLP over gRPC to send traces to the collector.
 ### Deploy Our Application
 
 By default domain name is `enesonus-127-0-0-1.nip.io`. You can change it by setting `ingress.domain` parameter.
