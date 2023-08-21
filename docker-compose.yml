@@ -1,6 +1,8 @@
 version: "3"
 
 services:
+
+# Public Service
   public:
     build:
       context: .
@@ -9,40 +11,34 @@ services:
       - "8080:8080"
     networks:
       - elastic-jaeger
+    restart: on-failure
     environment:
       - PORT=8080
-      - SERVICE_ARTIST_URL=http://service-artist:9091
-      - SERVICE_PRICE_URL=http://service-price:9090
+      - SERVICE_PRICE_URL=http://service-price:9093
       - SERVICE_TITLE_URL=http://service-title:9091
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - SERVICE_ARTIST_URL=http://service-artist:9092
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
       - OTEL_EXPORTER_OTLP_INSECURE=true
+    depends_on:
+      - service-artist
+      - service-price
+      - service-title
 
-  service-artist:
-    build:
-      context: .
-      dockerfile: cmd/service-artist/Dockerfile
-    ports:
-      - "9092:9092"
-    networks:
-      - elastic-jaeger
-    environment:
-      - PORT=9091
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
-      - OTEL_EXPORTER_OTLP_INSECURE=true
-
+# Internal Price Service
   service-price:
     build:
       context: .
       dockerfile: cmd/service-price/Dockerfile
     ports:
-      - "9090:9090"
+      - "9093:9093"
     networks:
       - elastic-jaeger
     environment:
-      - PORT=9090
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - PORT=9093
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
       - OTEL_EXPORTER_OTLP_INSECURE=true 
 
+# Internal Title Service
   service-title:
     build:
       context: .
@@ -53,16 +49,33 @@ services:
       - elastic-jaeger
     environment:
       - PORT=9091
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
       - OTEL_EXPORTER_OTLP_INSECURE=true
 
+# Internal Artist Service
+  service-artist:
+    build:
+      context: .
+      dockerfile: cmd/service-artist/Dockerfile
+    ports:
+      - "9092:9092"
+    networks:
+      - elastic-jaeger
+    environment:
+      - PORT=9092
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_INSECURE=true
+
+# ------------------------------------------------------------------ #
+
+# Elastic Search
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.12
     networks:
       - elastic-jaeger
     ports:
-      - "127.0.0.1:9200:9200"
-      - "127.0.0.1:9300:9300"
+      - "9200:9200"
+      - "9300:9300"
     restart: on-failure
     environment:
       - cluster.name=jaeger-cluster
@@ -71,18 +84,23 @@ services:
       - transport.host=127.0.0.1
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - xpack.security.enabled=false
+      - http.cors.enabled=true
+      - http.cors.allow-origin=*
+      - http.cors.allow-headers=X-Requested-With,Content-Type,Content-Length,Authorization
     volumes:
       - esdata:/usr/share/elasticsearch/data
 
+# Jaeger Collector
   jaeger-collector:
     image: jaegertracing/jaeger-collector
     ports:
       - "14269:14269"
       - "14268:14268"
       - "14267:14267"
+      - "14250:14250"
       - "9411:9411"
-      - "4317:4317"
-      - "4318:4318"
+      # - "4317:4317"
+      # - "4318:4318"
     networks:
       - elastic-jaeger
     restart: on-failure
@@ -97,10 +115,13 @@ services:
     depends_on:
       - elasticsearch
 
+# Jaeger Query
   jaeger-query:
     image: jaegertracing/jaeger-query
     environment:
       - SPAN_STORAGE_TYPE=elasticsearch
+      - METRICS_STORAGE_TYPE=prometheus
+      - ES_SERVER_URLS=http://elasticsearch:9200/
       - no_proxy=localhost
     ports:
       - "16686:16686"
@@ -109,11 +130,31 @@ services:
       - elastic-jaeger
     restart: on-failure
     command: [
-      "--es.server-urls=http://elasticsearch:9200",
+      "--es.server-urls=http://elasticsearch:9200/",
       "--span-storage.type=elasticsearch",
       "--log-level=debug"
     ]
+    depends_on:
+      - elasticsearch
+      #- otel-collector
+      # - jaeger-collector
 
+# OTeL Collector
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.83.0
+    restart: on-failure
+    command: ["--config=/etc/otel-collector-config.yaml", "${OTELCOL_ARGS}"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "1888:1888"   # pprof extension
+      - "8888:8888"   # Prometheus metrics exposed by the collector
+      - "8889:8889"   # Prometheus exporter metrics
+      - "13133:13133" # health_check extension
+      - "4317:4317"   # OTLP gRPC receiver
+      # - "55679:55679" # zpages extension
+    networks:
+      - elastic-jaeger
 
 volumes:
   esdata:
